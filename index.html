@@ -1,9 +1,9 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <style>
-
         .text-input {
             position: absolute;
             left: 0;
@@ -14,21 +14,19 @@
             transform: rotate(30deg);
             caret-color: red;
         }
-
     </style>
 </head>
 <body>
 
-<div id="app" >
+<div id="app">
     <div class="" style="text-align: center;">
         <canvas id="input-canvas" :width="styleObject.width" :height="styleObject.height"
                 style="border: solid 1px lightgray">
-
         </canvas>
 
         <!--        <input class="text-input" id="input-message" v-model="form.message" type="text" placeholder="输入水印文字"/>-->
     </div>
-    <div >
+    <div>
         <el-form ref="form" :model="form" label-width="80px">
             <el-row :gutter="20">
                 <el-col :span="12" :offset="6">
@@ -37,7 +35,6 @@
                     </el-form-item>
                 </el-col>
             </el-row>
-
             <el-row :gutter="20">
                 <el-col :span="12" :offset="6">
                     <el-form-item label="文字">
@@ -89,6 +86,7 @@
         </el-form>
     </div>
 </div>
+</body>
 <!--<script src="https://cdn.jsdelivr.net/npm/vue"></script>-->
 <script src="https://cdn.jsdelivr.net/npm/@jaames/iro/dist/iro.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
@@ -246,5 +244,4 @@
         }
     })
 </script>
-</body>
 </html>
