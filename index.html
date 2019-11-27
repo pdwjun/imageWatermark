@@ -1,0 +1,255 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+
+        .text-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: none;
+            color: #ff000000;
+            border: none;
+            transform: rotate(30deg);
+            caret-color: red;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app" >
+    <el-form ref="form" :model="form" label-width="80px">
+
+        <el-form-item label="原始大小">
+            <el-switch v-model="form.real_size"></el-switch>
+        </el-form-item>
+    </el-form>
+    <div class="" style="text-align: center;">
+        <canvas id="input-canvas" :width="styleObject.width" :height="styleObject.height"
+                style="border: solid 1px lightgray">
+
+        </canvas>
+
+        <!--        <input class="text-input" id="input-message" v-model="form.message" type="text" placeholder="输入水印文字"/>-->
+    </div>
+    <div >
+        <el-form ref="form" :model="form" label-width="80px">
+            <el-row :gutter="20">
+                <el-col :span="12" :offset="6">
+                    <el-form-item label="图片">
+                        <input type="file" class="" v-on:change="chooseImg"/>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+
+            <el-row :gutter="20">
+                <el-col :span="12" :offset="6">
+                    <el-form-item label="文字">
+                        <el-input v-model="form.message" placeholder="请输入浏览器支持的字体"></el-input>
+                    </el-form-item>
+                    <el-form-item label="字体">
+                        <el-input v-model="form.font_family" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="大小">
+                        <el-input v-model="form.font_size" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="旋转">
+                        <el-input v-model="form.rotate_deg" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="距左">
+                        <el-input v-model="form.position_x" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="距顶">
+                        <el-input v-model="form.position_y" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="原始大小">
+                        <el-switch v-model="form.real_size"></el-switch>
+                    </el-form-item>
+                    <el-form-item label="原始比例" v-if="form.real_size == false">
+                        <el-switch
+                                v-model="form.freeze_ratio">
+                        </el-switch>
+                    </el-form-item>
+                    <el-form-item label="宽" v-if="form.real_size == false">
+                        <el-input v-model="styleObject.width" @blur="imgSizeChange('width')"
+                                  placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="高" v-if="form.real_size == false">
+                        <el-input v-model="styleObject.height" @blur="imgSizeChange('height')"
+                                  placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                    <el-form-item label="颜色">
+                        <el-input v-model="form.color" placeholder="请填写颜色值"></el-input>
+                    </el-form-item>
+                    <!--        <div class="">-->
+                    <!--            <el-color-picker v-model="form.color" show-alpha></el-color-picker>-->
+                    <!--        </div>-->
+
+                    <el-form-item label="">
+                        <div id="color-picker-container"></div>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+        </el-form>
+    </div>
+</div>
+<!--<script src="https://cdn.jsdelivr.net/npm/vue"></script>-->
+<script src="https://cdn.jsdelivr.net/npm/@jaames/iro/dist/iro.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+<script>
+    // todo 位置使用拖动
+    var app = new Vue({
+        el: '#app',
+        data: {
+            ctx: null,
+            colorPicker: null,
+            form: {
+                message: '这里输入水印文字',
+                img: new Image,
+                local_img: null,
+                font_family: 'arial',
+                font_size: '24',
+                color: "#f00",
+                position_x: '40',
+                position_y: '50',
+                rotate_deg: '10',
+                real_size: true,
+                freeze_ratio: true
+            },
+            imgSize: {
+                width: null,
+                height: null,
+            },
+            styleObject: {
+                width: 500,
+                height: 200
+            }
+        },
+        methods: {
+            init: function () {
+                var canvas = document.getElementById('input-canvas');
+
+                this.ctx = canvas.getContext("2d");
+                this.form.img.src = 'http://i.imgur.com/ruZv0dl.png';
+
+                var vm = this;
+                this.form.img.onload = function () {
+                    vm.imgSize.width = this.width;
+                    vm.imgSize.height = this.height;
+                    // 判断图片大小
+                    if (vm.form.real_size) {
+                        vm.styleObject.width = this.width;
+
+                        vm.styleObject.height = this.height;
+                    } else if (vm.form.freeze_ratio) {
+                        vm.styleObject.height = (this.height / this.width * vm.styleObject.width).toFixed(2);
+                    }
+                    vm.$nextTick(() => {
+                        vm.draw();
+                    })
+                };
+
+                // 设置颜色选择器
+                this.colorPicker = new iro.ColorPicker("#color-picker-container", {
+                    // Set the size of the color picker
+                    width: 200,
+                    // Set the initial color to pure red
+                    color: this.form.color
+                });
+
+                var vm = this;
+                this.colorPicker.on('color:change', function () {
+                    vm.form.color = vm.colorPicker.color.hexString;
+                })
+            },
+            draw: function () {
+
+                this.ctx.font = this.form.font_size + "px " + this.form.font_family;
+                this.ctx.fillStyle = this.form.color;
+
+                // this.ctx.rotate(Math.PI / 2);
+                var vm = this;
+                vm.ctx.drawImage(vm.form.img, 0, 0, vm.ctx.canvas.width, vm.ctx.canvas.height);
+                vm.ctx.translate(this.form.position_x, this.form.position_y);
+                // vm.ctx.moveTo(this.form.position_x, this.form.position_y);
+                vm.ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
+                vm.ctx.fillText(vm.form.message, 0, 0); //选择位置
+                vm.ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
+
+                this.ctx.translate(-this.form.position_x, -this.form.position_y);
+
+            },
+            chooseImg: function (file) {
+                var reader = new FileReader();
+                reader.readAsDataURL(file.target.files[0]);
+                //调用readAsDataURL方法来读取选中的图像文件
+                var vm = this;
+                reader.onload = function (e) {
+                    var src = e.target.result;
+                    var oImg = new Image();//创建一个image对象
+                    oImg.src = src;//把上传图片的路径赋值给新的image对象
+                    vm.form.img = oImg;
+
+                    oImg.onload = function () {
+                        vm.imgSize.width = this.width;
+                        vm.imgSize.height = this.height;
+                        // 判断图片大小
+                        if (vm.form.real_size) {
+                            vm.styleObject.width = this.width;
+
+                            vm.styleObject.height = this.height;
+                        } else if (vm.form.freeze_ratio) {
+                            vm.styleObject.height = (this.height / this.width * vm.styleObject.width).toFixed(2);
+                        }
+                        vm.$nextTick(() => {
+                            vm.draw();
+                        })
+                    };
+
+                };
+            },
+            imgSizeChange: function (param) {
+                if (param === 'width') {
+                    if (this.form.freeze_ratio && this.imgSize.height != null) {
+                        this.styleObject.height = (this.imgSize.height / this.imgSize.width * this.styleObject.width).toFixed(2)
+                    }
+                }
+                if (param === 'height') {
+                    if (this.form.freeze_ratio && this.imgSize.width != null) {
+                        this.styleObject.width = (this.imgSize.width / this.imgSize.height * this.styleObject.height).toFixed(2)
+                    }
+                }
+                this.$nextTick(() => {
+                    this.draw();
+                })
+            }
+        },
+        mounted: function () {
+            this.init();
+        },
+        watch: {
+            // 这里不能监听宽高，如果设置了原始比例，改了宽会重新设置高，然后高又被监听，会循环
+            computedProperty() {
+                if (this.form.real_size && this.imgSize.width != null) {
+                    this.styleObject.width = this.imgSize.width;
+                    this.styleObject.height = this.imgSize.height;
+                }
+
+                this.$nextTick(() => {
+                    this.draw();
+                })
+            }
+        },
+        computed: {
+            computedProperty() {
+                return [this.form.message, this.form.font_size, this.form.rotate_deg,
+                    this.form.color, this.form.position_x, this.form.position_y, this.form.real_size, this.form.freeze_ratio].join();
+            }
+        }
+    })
+</script>
+</body>
+</html>
