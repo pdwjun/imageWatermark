@@ -1,5 +1,6 @@
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
     <style>
 
@@ -19,12 +20,6 @@
 <body>
 
 <div id="app" >
-    <el-form ref="form" :model="form" label-width="80px">
-
-        <el-form-item label="原始大小">
-            <el-switch v-model="form.real_size"></el-switch>
-        </el-form-item>
-    </el-form>
     <div class="" style="text-align: center;">
         <canvas id="input-canvas" :width="styleObject.width" :height="styleObject.height"
                 style="border: solid 1px lightgray">
