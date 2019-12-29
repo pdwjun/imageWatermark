@@ -5,3 +5,8 @@
 <a href="https://blog.pdwjun.com/watermark/">demo</a>
 
 todo 文字水印位置使用拖动
+
+todolist |  状态
+-|-
+手机移动端支持 | 未完成
+文字水印位置使用拖动 | 未完成
