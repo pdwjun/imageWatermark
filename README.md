@@ -4,4 +4,4 @@
 
 <a href="https://blog.pdwjun.com/watermark/">demo</a>
 
-todo 位置使用拖动
+todo 文字水印位置使用拖动

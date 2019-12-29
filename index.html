@@ -14,21 +14,36 @@
             transform: rotate(30deg);
             caret-color: red;
         }
+
+        .rotate-90 i {
+            font-size: 2em;
+        }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div class="" style="text-align: center;">
-        <canvas id="input-canvas" :width="styleObject.width" :height="styleObject.height"
+        <canvas id="input-canvas" :width="canvasStyle.width" :height="canvasStyle.height"
                 style="border: solid 1px lightgray">
         </canvas>
 
         <!--        <input class="text-input" id="input-message" v-model="form.message" type="text" placeholder="输入水印文字"/>-->
+        <el-row>
+            <el-col class="rotate-90">
+                <el-button icon="el-icon-refresh-right" @click="rotateImage(90)"></el-button>
+                <el-button icon="el-icon-refresh-left" @click="rotateImage(-90)"></el-button>
+            </el-col>
+        </el-row>
     </div>
     <div>
         <el-form ref="form" :model="form" label-width="80px">
             <el-row :gutter="20">
+                <el-col :span="12" :offset="6">
+                    <el-form-item label="">
+                        <el-button icon="el-icon-download" @click="download()">保存图片</el-button>
+                    </el-form-item>
+                </el-col>
                 <el-col :span="12" :offset="6">
                     <el-form-item label="图片">
                         <input type="file" class="" v-on:change="chooseImg"/>
@@ -36,41 +51,77 @@
                 </el-col>
             </el-row>
             <el-row :gutter="20">
-                <el-col :span="12" :offset="6">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="文字">
                         <el-input v-model="form.message" placeholder="请输入浏览器支持的字体"></el-input>
                     </el-form-item>
+                </el-col>
+                <el-col :span="6">
                     <el-form-item label="字体">
                         <el-input v-model="form.font_family" placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="大小">
                         <el-input v-model="form.font_size" placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+                <el-col :span="6">
                     <el-form-item label="旋转">
                         <el-input v-model="form.rotate_deg" placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="距左">
                         <el-input v-model="form.position_x" placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+                <el-col :span="6">
                     <el-form-item label="距顶">
                         <el-input v-model="form.position_y" placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="原始大小">
                         <el-switch v-model="form.real_size"></el-switch>
                     </el-form-item>
+                </el-col>
+                <el-col :span="6">
                     <el-form-item label="原始比例" v-if="form.real_size == false">
                         <el-switch
                                 v-model="form.freeze_ratio">
                         </el-switch>
                     </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="宽" v-if="form.real_size == false">
-                        <el-input v-model="styleObject.width" @blur="imgSizeChange('width')"
+                        <el-input v-model="canvasStyle.width" @blur="imgSizeChange('width')"
                                   placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+                <el-col :span="6">
                     <el-form-item label="高" v-if="form.real_size == false">
-                        <el-input v-model="styleObject.height" @blur="imgSizeChange('height')"
+                        <el-input v-model="canvasStyle.height" @blur="imgSizeChange('height')"
                                   placeholder="请填写数字"></el-input>
                     </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6">
+                </el-col>
+                <el-col :span="6">
+                </el-col>
+            </el-row>
+            <el-row :gutter="20">
+                <el-col :span="6" :offset="6">
                     <el-form-item label="颜色">
                         <el-input v-model="form.color" placeholder="请填写颜色值"></el-input>
                     </el-form-item>
@@ -97,6 +148,7 @@
     var app = new Vue({
         el: '#app',
         data: {
+            canvas: null,
             ctx: null,
             colorPicker: null,
             form: {
@@ -116,34 +168,20 @@
                 width: null,
                 height: null,
             },
-            styleObject: {
+            canvasStyle: {
                 width: 500,
                 height: 200
-            }
+            },
+            img_rotate: 0
         },
         methods: {
             init: function () {
                 var canvas = document.getElementById('input-canvas');
 
+                this.canvas = canvas;
                 this.ctx = canvas.getContext("2d");
                 this.form.img.src = './id.jpeg';
-
-                var vm = this;
-                this.form.img.onload = function () {
-                    vm.imgSize.width = this.width;
-                    vm.imgSize.height = this.height;
-                    // 判断图片大小
-                    if (vm.form.real_size) {
-                        vm.styleObject.width = this.width;
-
-                        vm.styleObject.height = this.height;
-                    } else if (vm.form.freeze_ratio) {
-                        vm.styleObject.height = (this.height / this.width * vm.styleObject.width).toFixed(2);
-                    }
-                    vm.$nextTick(() => {
-                        vm.draw();
-                    })
-                };
+                this.loadImg();
 
                 // 设置颜色选择器
                 this.colorPicker = new iro.ColorPicker("#color-picker-container", {
@@ -157,6 +195,36 @@
                 this.colorPicker.on('color:change', function () {
                     vm.form.color = vm.colorPicker.color.hexString;
                 })
+            },
+            loadImg: function () {
+                var vm = this;
+                this.form.img.onload = function () {
+                    // 这里要判断旋转角度
+                    var width = this.width;
+                    var height = this.height;
+                    if (vm.img_rotate / 90 % 2 != 0) {
+                        width = this.height;
+                        height = this.width;
+                    }
+                    vm.imgSize.width = width;
+                    vm.imgSize.height = height;
+                    // 判断图片大小
+                    if (vm.form.real_size) {
+                        vm.canvasStyle.width = this.width;
+
+                        vm.canvasStyle.height = this.height;
+                    } else if (vm.form.freeze_ratio) {
+                        // 如果有旋转，这里的高度应该使用旋转后的宽高比例计算
+                        if (vm.img_rotate / 90 % 2 != 0) {
+                            vm.canvasStyle.height = (width / height * vm.canvasStyle.width).toFixed(2);
+                        } else {
+                            vm.canvasStyle.height = (height / width * vm.canvasStyle.width).toFixed(2);
+                        }
+                    }
+                    vm.$nextTick(() => {
+                        vm.draw();
+                    })
+                };
             },
             draw: function () {
 
@@ -176,6 +244,8 @@
 
             },
             chooseImg: function (file) {
+                // 重新选择了图片，旋转角度归0
+                this.img_rotate = 0;
                 var reader = new FileReader();
                 reader.readAsDataURL(file.target.files[0]);
                 //调用readAsDataURL方法来读取选中的图像文件
@@ -191,11 +261,10 @@
                         vm.imgSize.height = this.height;
                         // 判断图片大小
                         if (vm.form.real_size) {
-                            vm.styleObject.width = this.width;
-
-                            vm.styleObject.height = this.height;
+                            vm.canvasStyle.width = this.width;
+                            vm.canvasStyle.height = this.height;
                         } else if (vm.form.freeze_ratio) {
-                            vm.styleObject.height = (this.height / this.width * vm.styleObject.width).toFixed(2);
+                            vm.canvasStyle.height = (this.height / this.width * vm.canvasStyle.width).toFixed(2);
                         }
                         vm.$nextTick(() => {
                             vm.draw();
@@ -207,17 +276,73 @@
             imgSizeChange: function (param) {
                 if (param === 'width') {
                     if (this.form.freeze_ratio && this.imgSize.height != null) {
-                        this.styleObject.height = (this.imgSize.height / this.imgSize.width * this.styleObject.width).toFixed(2)
+                        if (this.img_rotate / 90 % 2 != 0) {
+                            this.canvasStyle.height = (this.imgSize.width / this.imgSize.height * this.canvasStyle.width).toFixed(2)
+                        } else {
+                            this.canvasStyle.height = (this.imgSize.height / this.imgSize.width * this.canvasStyle.width).toFixed(2)
+                        }
                     }
                 }
                 if (param === 'height') {
                     if (this.form.freeze_ratio && this.imgSize.width != null) {
-                        this.styleObject.width = (this.imgSize.width / this.imgSize.height * this.styleObject.height).toFixed(2)
+                        if (this.img_rotate / 90 % 2 != 0) {
+                            this.canvasStyle.width = (this.imgSize.height / this.imgSize.width * this.canvasStyle.height).toFixed(2)
+                        } else {
+                            this.canvasStyle.width = (this.imgSize.width / this.imgSize.height * this.canvasStyle.height).toFixed(2)
+                        }
                     }
                 }
                 this.$nextTick(() => {
                     this.draw();
                 })
+            },
+            rotateImage: function (deg) {
+                var tmpResult = this.img_rotate + deg;
+                if (tmpResult > 360 || tmpResult < -360) {
+                    tmpResult += tmpResult > 0 ? -360 : 360;
+                }
+                this.img_rotate = tmpResult;
+            },
+            // 图片旋转单独使用一个函数
+            rotateBase64Image: function (image, deg) {
+                var canvas = document.createElement('canvas');
+                var ctx = canvas.getContext("2d");
+
+                // var width = image.width;
+                // var height = image.height;
+                // if (this.img_rotate / 90 % 2 != 0) {
+                var width = image.height;
+                var height = image.width;
+                // }
+                canvas.width = width;
+                canvas.height = height;
+                ctx.rotate(deg * Math.PI / 180);
+                if (deg > 0) {
+                    ctx.translate(0, -image.height);
+                } else {
+                    ctx.translate(-image.width, 0);
+                }
+                // ctx.translate(image.width, image.height);
+                // ctx.translate(0, 0);
+                ctx.drawImage(image, 0, 0);
+                ctx.rotate(-deg * Math.PI / 180);
+                // return ctx;
+
+                return canvas.toDataURL();
+            },
+            download: function () {
+                // 如果图片太大，必须把base64的图片转换为 blob 才能下载
+                var link = document.createElement("a");
+                var imgData = this.canvas.toDataURL();
+
+                var blob = dataURLtoBlob(imgData);
+                var objurl = URL.createObjectURL(blob);
+
+                link.download = "__blog.pdwjun.com__.png";
+
+                link.href = objurl;
+
+                link.click();
             }
         },
         mounted: function () {
@@ -227,13 +352,25 @@
             // 这里不能监听宽高，如果设置了原始比例，改了宽会重新设置高，然后高又被监听，会循环
             computedProperty() {
                 if (this.form.real_size && this.imgSize.width != null) {
-                    this.styleObject.width = this.imgSize.width;
-                    this.styleObject.height = this.imgSize.height;
+                    if (this.img_rotate / 90 % 2 != 0) {
+                        this.canvasStyle.width = this.imgSize.height;
+                        this.canvasStyle.height = this.imgSize.width;
+                    } else {
+                        this.canvasStyle.width = this.imgSize.width;
+                        this.canvasStyle.height = this.imgSize.height;
+                    }
                 }
 
                 this.$nextTick(() => {
                     this.draw();
                 })
+            },
+            img_rotate: function (value, value2) {
+                // 对图像进行旋转
+                if (value2 == 360 || value2 == -360)
+                    value2 = 0;
+                this.form.img.src = this.rotateBase64Image(this.form.img, value - value2);
+                this.loadImg();
             }
         },
         computed: {
@@ -243,5 +380,14 @@
             }
         }
     })
+
+    function dataURLtoBlob(dataurl) {
+        var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {type: mime});
+    }
 </script>
 </html>
