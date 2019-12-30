@@ -24,10 +24,10 @@
 
 <div id="app">
     <div class="" style="text-align: center;">
-        <canvas id="input-canvas" :width="canvasStyle.width" :height="canvasStyle.height"
+        <canvas id="input-canvas" :width="canvasStyle.width" :height="canvasStyle.height" v-show="false"
                 style="border: solid 1px lightgray">
         </canvas>
-
+        <img :src="imgSrc" />
         <!--        <input class="text-input" id="input-message" v-model="form.message" type="text" placeholder="输入水印文字"/>-->
         <el-row>
             <el-col class="rotate-90">
@@ -149,6 +149,7 @@
         el: '#app',
         data: {
             canvas: null,
+            imgSrc: null,
             ctx: null,
             colorPicker: null,
             form: {
@@ -242,6 +243,8 @@
 
                 this.ctx.translate(-this.form.position_x, -this.form.position_y);
 
+                // 这种方法支持手机端长按图片保存
+                vm.imgSrc = vm.canvas.toDataURL();
             },
             chooseImg: function (file) {
                 // 重新选择了图片，旋转角度归0
