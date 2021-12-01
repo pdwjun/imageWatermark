@@ -22,12 +22,13 @@
 </head>
 <body>
 
-<div id="app">
+<div id="app" style="overflow: hidden">
     <div class="" style="text-align: center;">
         <canvas id="input-canvas" :width="canvasStyle.width" :height="canvasStyle.height" v-show="false"
                 style="border: solid 1px lightgray">
         </canvas>
-        <img :src="imgSrc" />
+        <canvas id="watermark" v-show="false"></canvas>
+        <img :src="imgSrc"/>
         <!--        <input class="text-input" id="input-message" v-model="form.message" type="text" placeholder="输入水印文字"/>-->
         <el-row>
             <el-col class="rotate-90">
@@ -38,7 +39,7 @@
     </div>
     <div>
         <el-form ref="form" :model="form" label-width="80px">
-            <el-row >
+            <el-row>
                 <el-col :span="12" :offset="6">
                     <el-form-item label="">
                         <el-button icon="el-icon-download" @click="download()">保存图片</el-button>
@@ -50,7 +51,7 @@
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="文字">
                         <el-input v-model="form.message" placeholder="请输入浏览器支持的字体"></el-input>
@@ -58,35 +59,54 @@
                 </el-col>
                 <el-col :span="6">
                     <el-form-item label="字体">
-                        <el-input v-model="form.font_family" placeholder="请填写数字"></el-input>
+                        <el-input v-model="form.font_family" placeholder="请填写字体"></el-input>
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="大小">
-                        <el-input v-model="form.font_size" placeholder="请填写数字"></el-input>
+                        <el-input v-model="form.font_size" type="number" placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :span="6">
                     <el-form-item label="旋转">
-                        <el-input v-model="form.rotate_deg" placeholder="请填写数字"></el-input>
+                        <el-input v-model="form.rotate_deg" type="number" placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
+                <el-col :span="6" :offset="6">
+                    <el-form-item label="平铺">
+                        <el-switch v-model="form.tile_flag"></el-switch>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="6" :offset="6" v-show="form.tile_flag">
+                    <el-form-item label="宽">
+                        <el-input v-model="form.watermark_width" type="number" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6" v-show="form.tile_flag">
+                    <el-form-item label="高">
+                        <el-input v-model="form.watermark_height" type="number" placeholder="请填写数字"></el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="距左">
-                        <el-input v-model="form.position_x" placeholder="请填写数字"></el-input>
+                        <el-input v-model="form.position_x" type="number" placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :span="6">
                     <el-form-item label="距顶">
-                        <el-input v-model="form.position_y" placeholder="请填写数字"></el-input>
+                        <el-input v-model="form.position_y" type="number" placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="原始大小">
                         <el-switch v-model="form.real_size"></el-switch>
@@ -100,27 +120,37 @@
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="宽" v-if="form.real_size == false">
-                        <el-input v-model="canvasStyle.width" @blur="imgSizeChange('width')"
+                        <el-input v-model="canvasStyle.width" type="number" @blur="imgSizeChange('width')"
                                   placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :span="6">
                     <el-form-item label="高" v-if="form.real_size == false">
-                        <el-input v-model="canvasStyle.height" @blur="imgSizeChange('height')"
+                        <el-input v-model="canvasStyle.height" type="number" @blur="imgSizeChange('height')"
                                   placeholder="请填写数字"></el-input>
                     </el-form-item>
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
                 <el-col :span="6">
                 </el-col>
                 <el-col :span="6">
                 </el-col>
             </el-row>
-            <el-row >
+            <el-row>
+                <el-col :span="6" :offset="6">
+                    <el-form-item label="透明度">
+                        <el-input v-model="form.opacity"
+                                  placeholder="请透明度0.1~1"></el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                </el-col>
+            </el-row>
+            <el-row>
                 <el-col :span="6" :offset="6">
                     <el-form-item label="颜色">
                         <el-input v-model="form.color" placeholder="请填写颜色值"></el-input>
@@ -159,11 +189,16 @@
                 font_family: 'arial',
                 font_size: '24',
                 color: "#f00",
+                opacity: 0.8,
                 position_x: '40',
                 position_y: '50',
                 rotate_deg: '10',
                 real_size: true,
-                freeze_ratio: true
+                freeze_ratio: true,
+                tile_flag: false,
+                real_tile_flag: false,
+                watermark_width: '300',
+                watermark_height: '100',
             },
             imgSize: {
                 width: null,
@@ -189,12 +224,24 @@
                     // Set the size of the color picker
                     width: 200,
                     // Set the initial color to pure red
-                    color: this.form.color
+                    color: this.form.color,
+                    layout: [
+                        {
+                            component: iro.ui.Wheel,
+                            options: {}
+                        },
+                        {
+                            component: iro.ui.Slider,
+                            options: {
+                                sliderType: 'alpha' //也可以是 'saturation', 'value', 'alpha' 或 'kelvin'
+                            }
+                        }
+                    ],
                 });
 
                 var vm = this;
                 this.colorPicker.on('color:change', function () {
-                    vm.form.color = vm.colorPicker.color.hexString;
+                    vm.form.color = vm.colorPicker.color.rgbaString;
                 })
             },
             loadImg: function () {
@@ -232,14 +279,58 @@
                 this.ctx.font = this.form.font_size + "px " + this.form.font_family;
                 this.ctx.fillStyle = this.form.color;
 
+
                 // this.ctx.rotate(Math.PI / 2);
                 var vm = this;
+                vm.ctx.clearRect(0, 0, vm.ctx.width, vm.ctx.height);
                 vm.ctx.drawImage(vm.form.img, 0, 0, vm.ctx.canvas.width, vm.ctx.canvas.height);
                 vm.ctx.translate(this.form.position_x, this.form.position_y);
                 // vm.ctx.moveTo(this.form.position_x, this.form.position_y);
-                vm.ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
-                vm.ctx.fillText(vm.form.message, 0, 0); //选择位置
-                vm.ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
+                // vm.ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
+
+                var cw = document.getElementById("watermark")
+                var crw = vm.canvas;
+                var ctx = cw.getContext("2d");
+                if (vm.form.tile_flag) {
+                    // cw.height = this.form.tile_line_height
+                    // 实时计算宽度
+                    cw.font = this.form.font_size
+                    cw.width = vm.form.watermark_width
+                    cw.height = vm.form.watermark_height
+                    // cw.width = vm.imgSize.width / 3
+                    ctx.clearRect(0, 0, crw.width, crw.height);
+                    //清除小画布
+                    // ctx.clearRect(0, 0, 160, 100);
+                    ctx.font = this.form.font_size + "px " + this.form.font_family;
+                    //文字倾斜角度
+                    // ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
+
+                    ctx.fillStyle = this.form.color;
+                    //第一行文字
+                    ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
+                    ctx.fillText(vm.form.message, this.form.font_size, this.form.font_size);
+                    //第二行文字
+                    //ctx.fillText(window.watermark.mobile, self.opt.SecondLinePositionX, self.opt.SecondLinePositionY);
+                    //坐标系还原
+                    // ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
+
+                    var ctxr = crw.getContext("2d");
+                    //清除整个画布
+                    // ctxr.clearRect(0, 0, crw.width, crw.height);
+                    //平铺--重复小块的canvas
+
+                    var pat = ctxr.createPattern(cw, "repeat");
+                    ctxr.fillStyle = pat;
+                    ctxr.fillRect(0, 0, crw.width, crw.height);
+                    ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
+
+                } else {
+                    ctx.clearRect(0, 0, crw.width, crw.height);
+                    vm.ctx.rotate(vm.form.rotate_deg * Math.PI / 180);
+                    vm.ctx.fillText(vm.form.message, 0, 0); //选择位置
+                    vm.ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
+                }
+                // vm.ctx.rotate(-vm.form.rotate_deg * Math.PI / 180);
 
                 this.ctx.translate(-this.form.position_x, -this.form.position_y);
 
@@ -346,7 +437,7 @@
                 link.href = objurl;
 
                 link.click();
-            }
+            },
         },
         mounted: function () {
             this.init();
@@ -364,10 +455,22 @@
                     }
                 }
 
+                if (this.form.real_tile_flag != this.form.tile_flag) {
+                    if (this.form.tile_flag) {
+                        this.form.position_x = 0
+                        this.form.position_y = 0
+                        this.form.real_tile_flag = true
+                    } else {
+                        this.form.position_x = 40
+                        this.form.position_y = 50
+                        this.form.real_tile_flag = false
+                    }
+                }
                 this.$nextTick(() => {
                     this.draw();
                 })
-            },
+            }
+            ,
             img_rotate: function (value, value2) {
                 // 对图像进行旋转
                 if (value2 == 360 || value2 == -360)
@@ -378,7 +481,8 @@
         },
         computed: {
             computedProperty() {
-                return [this.form.message, this.form.font_size, this.form.rotate_deg,
+                return [this.form.message, this.form.font_size, this.form.rotate_deg, this.form.tile_flag,
+                    this.form.watermark_width, this.form.watermark_height,
                     this.form.color, this.form.position_x, this.form.position_y, this.form.real_size, this.form.freeze_ratio].join();
             }
         }
